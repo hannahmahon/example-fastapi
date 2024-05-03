@@ -10,16 +10,12 @@ import time
 
 app = FastAPI()
 
-in_memory_cache = {}
-
 
 def get_trends_with_retry(keyword, start_date, end_date):
     end_time = datetime.now() + timedelta(minutes=3)
     pytrends = TrendReq(hl="en-US", tz=360)
     should_retry = True
     id = f"{keyword}-{start_date}-{end_date}"
-    if in_memory_cache.get(id) is not None:
-        return {"status": 200, "data": in_memory_cache.get(id)}
 
     while datetime.now() < end_time and should_retry:
         print("loop")
@@ -38,7 +34,6 @@ def get_trends_with_retry(keyword, start_date, end_date):
                 data = data.reset_index()
                 result = data.to_json(orient="records", date_format="iso")
                 result_data = json.loads(result)
-                in_memory_cache[id] = result_data
                 return {"status": 200, "data": result_data}
 
         except Exception as e:
